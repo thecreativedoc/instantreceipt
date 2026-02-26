@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstantReceipt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4d4d8; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa; 
+        }
+        
+        /* Thermal paper texture hint */
+        .thermal-paper {
+            background-color: #ffffff;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.02) 1px, transparent 1px);
+            background-size: 100% 100%;
+        }
+    </style>
+</head>
+<body class="bg-neutral-100 text-neutral-800 font-sans min-h-screen selection:bg-neutral-300">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-neutral-200 py-4 px-6 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div class="flex items-center gap-2 text-neutral-900 font-semibold text-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-receipt-text"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg>
+            InstantReceipt
+        </div>
+        <button id="download-btn" class="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <span class="hidden sm:inline">Download PNG</span>
+        </button>
+    </header>
+
+    <main class="container mx-auto max-w-6xl p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Editor Panel -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Store Details -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <h2 class="flex items-center gap-2 font-semibold text-neutral-700 mb-4 border-b pb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Store Details
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Store Name</label>
+                        <input type="text" id="in-store-name" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Phone</label>
+                        <input type="text" id="in-store-phone" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Address</label>
+                        <textarea id="in-store-address" rows="2" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Receipt Info -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <h2 class="flex items-center gap-2 font-semibold text-neutral-700 mb-4 border-b pb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/></svg>
+                    Receipt Info
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Receipt No.</label>
+                        <input type="text" id="in-receipt-no" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Date</label>
+                        <input type="date" id="in-date" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Time</label>
+                        <input type="time" id="in-time" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Items Section -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <div class="flex items-center justify-between mb-4 border-b pb-2">
+                    <h2 class="font-semibold text-neutral-700">Line Items</h2>
+                    <button id="add-item-btn" class="text-xs flex items-center gap-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-2 py-1 rounded transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Add Item
+                    </button>
+                </div>
+                
+                <div id="items-container" class="space-y-3">
+                    <!-- Dynamic items will be injected here -->
+                </div>
+                <div id="no-items-msg" class="text-center py-6 text-neutral-400 text-sm italic hidden">
+                    No items added. Click "Add Item" to start.
+                </div>
+            </section>
+
+            <!-- Checkout Details -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <h2 class="font-semibold text-neutral-700 mb-4 border-b pb-2">Checkout Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Tax Rate (%)</label>
+                        <div class="relative">
+                            <input type="number" id="in-tax-rate" min="0" step="0.1" class="w-full bg-neutral-50 border border-neutral-200 rounded pr-8 pl-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                            <span class="absolute right-3 top-2 text-neutral-500 text-sm">%</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-neutral-500 uppercase">Payment Method</label>
+                        <input type="text" id="in-payment-method" class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400">
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Live Preview Panel -->
+        <div class="lg:col-span-5 flex flex-col items-center lg:sticky lg:top-24">
+            <div class="text-xs font-medium text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span class="w-8 h-px bg-neutral-300 block"></span>
+                Live Preview
+                <span class="w-8 h-px bg-neutral-300 block"></span>
+            </div>
+
+            <!-- ACTUAL RECEIPT DOM -->
+            <div id="receipt-preview" class="thermal-paper text-black w-[340px] shadow-2xl overflow-hidden font-mono text-sm leading-tight relative" style="min-height: 400px;">
+                <div class="p-6">
+                    <!-- Receipt Header -->
+                    <div class="text-center mb-6">
+                        <h1 id="out-store-name" class="text-xl font-bold tracking-tight mb-1 uppercase"></h1>
+                        <p id="out-store-address" class="text-xs whitespace-pre-wrap text-gray-600"></p>
+                        <p id="out-store-phone" class="text-xs text-gray-600 mt-1"></p>
+                    </div>
+
+                    <!-- Receipt Meta -->
+                    <div class="flex justify-between items-end text-xs mb-3">
+                        <div>
+                            <p>Date: <span id="out-date"></span></p>
+                            <p>Time: <span id="out-time"></span></p>
+                        </div>
+                        <div class="text-right">
+                            <p>No: <span id="out-receipt-no"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- Dashed divider -->
+                    <div class="border-b-2 border-dashed border-gray-300 my-3"></div>
+
+                    <!-- Table Header -->
+                    <div class="flex justify-between text-xs font-bold mb-2">
+                        <div class="w-10">QTY</div>
+                        <div class="flex-1">ITEM</div>
+                        <div class="text-right w-16">AMT</div>
+                    </div>
+
+                    <!-- Dashed divider -->
+                    <div class="border-b-2 border-dashed border-gray-300 my-2"></div>
+
+                    <!-- Items List -->
+                    <div id="out-items-list" class="space-y-3 my-4">
+                        <!-- Dynamic preview items go here -->
+                    </div>
+
+                    <!-- Dashed divider -->
+                    <div class="border-b-2 border-dashed border-gray-300 my-3"></div>
+
+                    <!-- Totals -->
+                    <div class="space-y-1.5 text-xs flex flex-col items-end">
+                        <div class="flex justify-between w-full max-w-[200px]">
+                            <span>SUBTOTAL</span>
+                            <span id="out-subtotal">$0.00</span>
+                        </div>
+                        <div class="flex justify-between w-full max-w-[200px]">
+                            <span>TAX (<span id="out-tax-rate-label">0</span>%)</span>
+                            <span id="out-tax-amt">$0.00</span>
+                        </div>
+                        <div class="flex justify-between w-full max-w-[200px] font-bold text-sm mt-2 pt-2 border-t border-gray-800">
+                            <span>TOTAL</span>
+                            <span id="out-total">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Dashed divider -->
+                    <div class="border-b-2 border-dashed border-gray-300 my-4"></div>
+
+                    <!-- Footer -->
+                    <div class="text-center text-xs space-y-2 text-gray-700 mt-6">
+                        <p>PAID WITH: <br/><span id="out-payment-method" class="font-bold uppercase"></span></p>
+                        <div class="mt-6 font-bold pt-4">THANK YOU FOR YOUR BUSINESS!</div>
+                        <div class="text-[10px] text-gray-400">Powered by InstantReceipt</div>
+                    </div>
+
+                    <!-- Fake Barcode -->
+                    <div class="mt-8 flex justify-center opacity-70">
+                        <div class="h-10 w-full max-w-[200px] bg-[repeating-linear-gradient(90deg,#000,#000_2px,transparent_2px,transparent_4px,#000_4px,#000_5px,transparent_5px,transparent_8px,#000_8px,#000_12px,transparent_12px,transparent_14px)]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-xs text-neutral-400 mt-6 text-center max-w-[340px]">
+                The preview above shows exactly how your receipt will look. Click the download button at the top to save it as a high-quality PNG.
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // State Management
+        const state = {
+            seller: {
+                name: 'SCRIBBLE STATIONERY',
+                address: '123 Commerce St.\nCityville, State 12345',
+                phone: '+1 (555) 123-4567'
+            },
+            meta: {
+                receiptNo: 'RC-99812',
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            },
+            items: [
+                { id: 1, name: 'Minimalist Coffee Mug', qty: 2, price: 14.50 },
+                { id: 2, name: 'Aesthetic Notebook', qty: 1, price: 22.00 },
+                { id: 3, name: 'Gel Pen Set (Black)', qty: 1, price: 8.99 }
+            ],
+            financials: {
+                taxRate: 5,
+                paymentMethod: 'Credit Card (**** 4242)'
+            }
+        };
+
+        // DOM Elements - Editor Inputs
+        const inputs = {
+            storeName: document.getElementById('in-store-name'),
+            storePhone: document.getElementById('in-store-phone'),
+            storeAddress: document.getElementById('in-store-address'),
+            receiptNo: document.getElementById('in-receipt-no'),
+            date: document.getElementById('in-date'),
+            time: document.getElementById('in-time'),
+            taxRate: document.getElementById('in-tax-rate'),
+            paymentMethod: document.getElementById('in-payment-method')
+        };
+
+        const itemsContainer = document.getElementById('items-container');
+        const noItemsMsg = document.getElementById('no-items-msg');
+        const addItemBtn = document.getElementById('add-item-btn');
+        const downloadBtn = document.getElementById('download-btn');
+
+        // DOM Elements - Preview Outputs
+        const outputs = {
+            storeName: document.getElementById('out-store-name'),
+            storeAddress: document.getElementById('out-store-address'),
+            storePhone: document.getElementById('out-store-phone'),
+            date: document.getElementById('out-date'),
+            time: document.getElementById('out-time'),
+            receiptNo: document.getElementById('out-receipt-no'),
+            itemsList: document.getElementById('out-items-list'),
+            subtotal: document.getElementById('out-subtotal'),
+            taxRateLabel: document.getElementById('out-tax-rate-label'),
+            taxAmt: document.getElementById('out-tax-amt'),
+            total: document.getElementById('out-total'),
+            paymentMethod: document.getElementById('out-payment-method')
+        };
+
+        // Initialize App
+        function init() {
+            // Set initial input values
+            inputs.storeName.value = state.seller.name;
+            inputs.storePhone.value = state.seller.phone;
+            inputs.storeAddress.value = state.seller.address;
+            inputs.receiptNo.value = state.meta.receiptNo;
+            inputs.date.value = state.meta.date;
+            inputs.time.value = state.meta.time;
+            inputs.taxRate.value = state.financials.taxRate;
+            inputs.paymentMethod.value = state.financials.paymentMethod;
+
+            // Add Event Listeners to static inputs
+            inputs.storeName.addEventListener('input', (e) => { state.seller.name = e.target.value; updatePreview(); });
+            inputs.storePhone.addEventListener('input', (e) => { state.seller.phone = e.target.value; updatePreview(); });
+            inputs.storeAddress.addEventListener('input', (e) => { state.seller.address = e.target.value; updatePreview(); });
+            
+            inputs.receiptNo.addEventListener('input', (e) => { state.meta.receiptNo = e.target.value; updatePreview(); });
+            inputs.date.addEventListener('input', (e) => { state.meta.date = e.target.value; updatePreview(); });
+            inputs.time.addEventListener('input', (e) => { state.meta.time = e.target.value; updatePreview(); });
+            
+            inputs.taxRate.addEventListener('input', (e) => { state.financials.taxRate = Number(e.target.value) || 0; updatePreview(); });
+            inputs.paymentMethod.addEventListener('input', (e) => { state.financials.paymentMethod = e.target.value; updatePreview(); });
+
+            addItemBtn.addEventListener('click', () => {
+                state.items.push({ id: Date.now(), name: 'New Item', qty: 1, price: 0 });
+                renderEditorItems();
+                updatePreview();
+            });
+
+            downloadBtn.addEventListener('click', handleDownload);
+
+            // Initial Renders
+            renderEditorItems();
+            updatePreview();
+        }
+
+        // Render Editor Items
+        function renderEditorItems() {
+            itemsContainer.innerHTML = '';
+            
+            if (state.items.length === 0) {
+                noItemsMsg.classList.remove('hidden');
+            } else {
+                noItemsMsg.classList.add('hidden');
+                
+                state.items.forEach((item, index) => {
+                    const row = document.createElement('div');
+                    row.className = "flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-neutral-50 p-3 rounded border border-neutral-100";
+                    
+                    row.innerHTML = `
+                        <span class="text-neutral-400 text-sm font-mono w-4 hidden sm:block">${index + 1}.</span>
+                        <div class="flex-1 w-full">
+                            <input type="text" placeholder="Item name" value="${item.name.replace(/"/g, '&quot;')}" 
+                                onchange="updateItem(${item.id}, 'name', this.value)"
+                                class="w-full bg-white border border-neutral-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-neutral-400">
+                        </div>
+                        <div class="w-full sm:w-20">
+                            <input type="number" min="1" placeholder="Qty" value="${item.qty}"
+                                onchange="updateItem(${item.id}, 'qty', this.value)"
+                                class="w-full bg-white border border-neutral-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-neutral-400 text-center">
+                        </div>
+                        <div class="w-full sm:w-24 relative">
+                            <span class="absolute left-2 top-1.5 text-neutral-400 text-sm">$</span>
+                            <input type="number" min="0" step="0.01" placeholder="Price" value="${item.price}"
+                                onchange="updateItem(${item.id}, 'price', this.value)"
+                                class="w-full bg-white border border-neutral-200 rounded pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:border-neutral-400">
+                        </div>
+                        <button onclick="removeItem(${item.id})" class="text-red-400 hover:text-red-600 p-1.5 w-full sm:w-auto flex justify-center bg-red-50 sm:bg-transparent rounded" title="Remove item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    `;
+                    itemsContainer.appendChild(row);
+                });
+            }
+        }
+
+        // Global functions for inline event handlers
+        window.updateItem = (id, field, value) => {
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item[field] = field === 'name' ? value : (Number(value) || 0);
+                updatePreview();
+            }
+        };
+
+        window.removeItem = (id) => {
+            state.items = state.items.filter(i => i.id !== id);
+            renderEditorItems();
+            updatePreview();
+        };
+
+        // Update the Live Preview DOM
+        function updatePreview() {
+            // Text fields
+            outputs.storeName.textContent = state.seller.name || 'STORE NAME';
+            outputs.storeAddress.textContent = state.seller.address;
+            outputs.storePhone.textContent = state.seller.phone;
+            
+            outputs.date.textContent = state.meta.date;
+            outputs.time.textContent = state.meta.time;
+            outputs.receiptNo.textContent = state.meta.receiptNo;
+            
+            outputs.paymentMethod.textContent = state.financials.paymentMethod || '---';
+
+            // Items
+            outputs.itemsList.innerHTML = '';
+            let subtotal = 0;
+            
+            if (state.items.length === 0) {
+                outputs.itemsList.innerHTML = '<div class="text-center text-gray-400 text-xs italic py-2">No items</div>';
+            } else {
+                state.items.forEach(item => {
+                    const amt = item.qty * item.price;
+                    subtotal += amt;
+                    
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between text-xs";
+                    row.innerHTML = `
+                        <div class="w-10">${item.qty}</div>
+                        <div class="flex-1 pr-2 uppercase break-words">${escapeHTML(item.name) || '---'}</div>
+                        <div class="text-right w-16">${amt.toFixed(2)}</div>
+                    `;
+                    outputs.itemsList.appendChild(row);
+                });
+            }
+
+            // Calculations
+            const taxAmt = subtotal * (state.financials.taxRate / 100);
+            const total = subtotal + taxAmt;
+
+            outputs.subtotal.textContent = `$${subtotal.toFixed(2)}`;
+            outputs.taxRateLabel.textContent = state.financials.taxRate;
+            outputs.taxAmt.textContent = `$${taxAmt.toFixed(2)}`;
+            outputs.total.textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Utility to prevent XSS in preview
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag])
+            );
+        }
+
+        // Download functionality
+        async function handleDownload() {
+            const receiptElement = document.getElementById('receipt-preview');
+            const originalTransform = receiptElement.style.transform;
+            
+            try {
+                // Change button state
+                downloadBtn.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating...
+                `;
+                downloadBtn.disabled = true;
+
+                const canvas = await html2canvas(receiptElement, {
+                    scale: 3, // High resolution
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true
+                });
+                
+                const image = canvas.toDataURL('image/png', 1.0);
+                const link = document.createElement('a');
+                link.download = `Receipt_${state.meta.receiptNo}.png`;
+                link.href = image;
+                link.click();
+
+            } catch (error) {
+                console.error("Error generating image:", error);
+                alert("There was an error generating the receipt image.");
+            } finally {
+                // Restore button state
+                downloadBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    <span class="hidden sm:inline">Download PNG</span>
+                `;
+                downloadBtn.disabled = false;
+            }
+        }
+
+        // Boot up
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
